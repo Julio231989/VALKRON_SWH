@@ -2,7 +2,7 @@
    Regla de oro: la app SIEMPRE abre desde la caché, al instante, haya señal, no haya señal
    o la señal esté «colgada» (la red conecta pero no responde, típico en campo).
    La red solo sirve para refrescar la caché en segundo plano, con límite de tiempo. */
-const CACHE_NAME = 'valkron-shell-v18';
+const CACHE_NAME = 'valkron-shell-v21';
 const REQUIRED = ['./index.html', './manifest.webmanifest'];             // sin estos la instalación falla y se conserva la versión anterior
 const OPTIONAL = ['./vendor/chart.umd.js',
                   './icon-192.png', './icon-512.png', './icon-192-maskable.png', './icon-512-maskable.png', './apple-touch-icon.png',
@@ -36,7 +36,8 @@ self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     // Solo se borran las cachés viejas si la nueva ya tiene la app. Nunca se deja al usuario sin shell.
     const nueva = await caches.open(CACHE_NAME);
-    if (await nueva.match('./index.html')) {
+    // Solo se retiran las cachés viejas si la nueva trae la app Y el gráfico (instalación completa); si no, la vieja sigue de respaldo.
+    if ((await nueva.match('./index.html')) && (await nueva.match('./vendor/chart.umd.js'))) {
       const keys = await caches.keys();
       await Promise.all(keys.filter((k) => k !== CACHE_NAME && k.startsWith('valkron-')).map((k) => caches.delete(k)));
     }
@@ -49,7 +50,7 @@ function refrescar(event, key, req) {
   event.waitUntil((async () => {
     try {
       const res = await conTimeout(req, 10000, { cache: 'reload' });
-      if (res && res.ok) { const c = await caches.open(CACHE_NAME); await c.put(key, res.clone()); }
+      const tipo = res ? (res.headers.get('content-type') || '') : ''; const esHtml = String(key.url || key).indexOf('index.html') !== -1; if (res && res.ok && (!esHtml || /text\/html/.test(tipo)) && (!esHtml || true)) { const c = await caches.open(CACHE_NAME); await c.put(key, res.clone()); }
     } catch (e) { /* sin red: se queda la copia guardada */ }
   })());
 }
@@ -71,7 +72,16 @@ self.addEventListener('fetch', (event) => {
     event.respondWith((async () => {
       const cached = await caches.match('./index.html', { ignoreSearch: true });
       if (cached) { refrescar(event, './index.html', new Request('./index.html')); return cached; }
-      try { return await conTimeout(req, 4000); } catch (e) { return RESPUESTA_SIN_SHELL(); }
+      try {
+        const r = await conTimeout(req, 4000);
+        // Autorreparación: si la caché perdió la app, se vuelve a guardar (solo si es realmente la app).
+        if (r.ok && /text\/html/.test(r.headers.get('content-type') || '')) {
+          const copia = r.clone();   // el clon se hace ya: después el cuerpo estará en uso
+          event.waitUntil((async () => { try { const c = await caches.open(CACHE_NAME); await c.put('./index.html', copia);
+            await Promise.allSettled(SHELL_FILES.filter((f) => f !== './index.html').map(async (f) => { if (!(await c.match(f))) { const x = await conTimeout(new Request(f, { cache: 'reload' }), 20000); if (x.ok) await c.put(f, x); } })); } catch (e) {} })());
+        }
+        return r;
+      } catch (e) { return RESPUESTA_SIN_SHELL(); }
     })());
     return;
   }

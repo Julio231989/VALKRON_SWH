@@ -16,7 +16,7 @@
 <link rel="icon" href="icon-192.png">
 <!-- Offline-first: la tipografía carga SIN bloquear el dibujo (si no hay red, se usa la del sistema).
      Chart.js va local y desde la caché del Service Worker. -->
-<!-- Tipografías locales (Space Grotesk + IBM Plex Mono, como Gambito): funcionan sin conexión. -->
+<!-- Tipografías locales (Space Grotesk + IBM Plex Mono): funcionan sin conexión. -->
 <script src="vendor/chart.umd.js"></script>
 <style>
   @font-face{font-family:'Space Grotesk'; font-weight:500; font-display:swap; src:url(fonts/space-grotesk-latin-500-normal.woff2) format('woff2');}
@@ -29,7 +29,7 @@
     --bg:oklch(0.15 0.014 240); --panel:oklch(0.195 0.016 238); --panel-2:oklch(0.23 0.018 236); --line:oklch(0.33 0.02 234); --line-strong:oklch(0.42 0.022 234);
     --teal:oklch(0.72 0.11 174); --teal-bright:oklch(0.82 0.13 174); --teal-600:oklch(0.72 0.11 174); --teal-700:oklch(0.5 0.09 174); --teal-300:oklch(0.82 0.13 174); --teal-100:oklch(0.72 0.11 174 / 14%);
     --amber:oklch(0.78 0.14 68); --red:oklch(0.66 0.19 24); --green:oklch(0.73 0.15 148); --purple:oklch(0.76 0.11 300); --blue:oklch(0.75 0.09 232);
-    --text:oklch(0.94 0.006 240); --text-dim:oklch(0.71 0.014 235); --text-mute:oklch(0.53 0.016 235);
+    --text:oklch(0.94 0.006 240); --text-dim:oklch(0.71 0.014 235); --text-mute:oklch(0.64 0.016 235);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{color-scheme:dark;}
@@ -144,6 +144,20 @@
   footer{text-align:center; color:var(--text-mute); font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:24px 0 6px;}
   #editOverlay{display:none; position:fixed; inset:0; background:rgba(10,9,8,.82); z-index:100; align-items:center; justify-content:center; padding:16px;}
   #editOverlay .box{background:var(--panel); border:1px solid var(--line-strong); border-radius:8px; max-width:520px; width:100%; max-height:88vh; overflow-y:auto; padding:20px;}
+  .actrow .nombre,.actrow .prop,td,th,pre,.empty,.rule-card p,.chip{overflow-wrap:anywhere;}
+  #cronoOv{display:none; position:fixed; inset:0; z-index:200; background:rgba(8,10,14,.97); align-items:center; justify-content:center; padding:20px;}
+  #cronoOv .crono-caja{width:100%; max-width:420px; text-align:center;}
+  #cronoOv .crono-nombre{font-size:15px; color:var(--text-dim); margin-bottom:6px;}
+  #cronoOv .crono-fase{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--teal); font-weight:700;}
+  #cronoOv .crono-reloj{font-family:'IBM Plex Mono',monospace; font-size:96px; font-weight:600; line-height:1.1; margin:14px 0; color:var(--text);}
+  #cronoOv .crono-info{font-size:13px; color:var(--text-dim); margin-bottom:10px;}
+  #cronoOv .crono-res{min-height:20px; font-size:14px; color:var(--green,#7ec27e); margin-bottom:12px; font-weight:700;}
+  #cronoOv .crono-btns .btn{width:100%; margin-top:10px; min-height:52px; font-size:15px;}
+  #cronoOv .crono-btns .btn.crono-grande{min-height:84px; font-size:18px;}
+  #cronoOv .crono-btns .btn.crono-chico{min-height:44px; font-size:13px; margin-top:22px;}
+  .btn.crono-btn{white-space:nowrap; min-width:48px; min-height:44px; padding:0 10px;}
+  .actrow .valcol.contador.crono{width:auto; max-width:58%; flex-shrink:0;} .actrow .valcol.contador.crono input{width:60px; flex:0 0 60px; font-size:14px;}
+  .actrow .btn.small{min-height:44px;}
   #recCard{display:none; position:fixed; left:10px; right:10px; bottom:calc(10px + env(safe-area-inset-bottom)); z-index:90; max-width:560px; margin:0 auto; background:var(--panel); border:1px solid var(--line-strong); border-left:3px solid var(--teal); padding:14px 16px; box-shadow:0 10px 34px rgba(0,0,0,.65);}
   #recCard .rec-cab{display:flex; align-items:baseline; gap:10px; margin-bottom:6px; font-size:14px;}
   #recCard .rec-hora{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-mute); font-weight:700;}
@@ -773,6 +787,16 @@
 <section id="tab-config" class="tabpanel" style="display:none;">
   <div class="panel">
     <h2><span class="n">14</span>Config</h2>
+    <div class="rule-card" style="margin-bottom:12px;">
+      <h3>Copia de seguridad</h3>
+      <p>Guarda todo lo de este teléfono en un archivo (por si cambias de teléfono, borras los datos del navegador o el almacenamiento se llena). «Importar» reemplaza lo que hay aquí. El token de acceso no se incluye.</p>
+      <div id="respaldoUso" style="font-size:11.5px; color:var(--text-dim); margin:6px 0;"></div>
+      <button class="btn small" id="btnExportar">Exportar copia (.json)</button>
+      <button class="btn secondary small" id="btnImportar">Importar copia…</button>
+      <input type="file" id="fileImportar" accept="application/json,.json" style="display:none;">
+      <div id="servidorInfo" style="font-size:11.5px; color:var(--text-dim); margin-top:10px;"></div>
+      <button class="btn secondary small" id="btnDesconectar" style="margin-top:6px;">Desconectar el Sheet</button>
+    </div>
     <div class="rule-card discard">
       <h3>Zona de pruebas / limpieza</h3>
       <p>Si haces un registro de prueba y quieres borrarlo: elimínalo primero en el Sheet, luego usa este botón para que este dispositivo olvide su copia local.</p>
@@ -813,12 +837,13 @@
   </div>
 </div>
 
-<footer>JAMR / Centro de Comando · offline-first · sincronizado con tu Google Sheet<br><span id="footerVersion" style="font-family:'IBM Plex Mono',monospace;">Valkron v18</span></footer>
+<footer>JAMR / Centro de Comando · offline-first · sincronizado con tu Google Sheet<br><span id="footerVersion" style="font-family:'IBM Plex Mono',monospace;">Valkron v21</span></footer>
 
 <script>
 /* ============ FECHA / HUSO HORARIO ECUADOR ============ */
 const TZ_ECUADOR = 'America/Guayaquil';
 /* Escapa texto del usuario antes de meterlo en innerHTML (evita que un texto con < o " rompa la página o ejecute código). */
+function esActivo(o){ return !!o && (o.activo===true || /^s[ií]$/i.test(String(o.activo==null?'':o.activo).trim())); }
 function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function getHoy(){
   return new Intl.DateTimeFormat('en-CA', { timeZone: TZ_ECUADOR, year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date());
@@ -832,7 +857,7 @@ function diaSemanaDeFecha(fechaStr){
   return DIAS_SEMANA[dt.getUTCDay()];
 }
 
-/* ============ ESTADO Y STORAGE (offline-first, mismo patrón de Gambito) ============ */
+/* ============ ESTADO Y STORAGE (offline-first) ============ */
 const CONFIG_KEY = 'jamr_config_v1';
 const ENDPOINT_KEY = 'jamr_endpoint_v1';
 const LOCAL_ACT_KEY = 'jamr_local_actividades_v1';
@@ -858,8 +883,10 @@ const LOCAL_COMIDAS_KEY = 'jamr_local_comidas_v1';
 const TOKEN_KEY = 'jamr_token_v1';
 const OUTBOX_KEY = 'jamr_outbox_v1';
 
-let ENDPOINT = localStorage.getItem(ENDPOINT_KEY) || '';
+let ENDPOINT = ''; try{ ENDPOINT = localStorage.getItem(ENDPOINT_KEY) || ''; }catch(e){}
 let ACTIVIDADES = [];
+const ACTIVIDADES_SEMILLA = [{"id":"v_despertar","orden":"1","nombre":"🌅 Despertar estoico","proposito":"Activar SNC sin pico de cortisol","detalle":"Vaso de agua + Agua de romero + Visualizar mi día y ciclo de respiración: inteligencia, estado de flujo, eustrés, fuerza, poder y salud.","tipo":"checkbox","unidad":"","hora_objetivo":"05:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_cp","orden":"2","nombre":"CP pausa de control","proposito":"Registrar segundos","detalle":"https://www.thebuteykomethod.com/buteyko-breathing/the-control-pause-a-complete-guide","tipo":"numerico","unidad":"s","hora_objetivo":"05:05","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_deadhang","orden":"3","nombre":"Dead hang (colgado de la barra)","proposito":"Cronómetro hablado · meta 60 s · tope 120 s","detalle":"","tipo":"numerico","unidad":"s · meta 60 · tope 120","hora_objetivo":"05:10","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":"Sí"},{"id":"v_wallsit","orden":"5","nombre":"Wall sit a 90°","proposito":"Cronómetro hablado · meta 90 s · tope 120 s","detalle":"","tipo":"numerico","unidad":"s · meta 90 · tope 120","hora_objetivo":"05:15","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":"Sí"},{"id":"v_flexiones","orden":"4","nombre":"Flexiones (1 serie al fallo)","proposito":"Registrar número","detalle":"","tipo":"numerico","unidad":"rep","hora_objetivo":"05:12","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":"Sí"},{"id":"v_dominadas","orden":"6","nombre":"Dominadas (1 serie al fallo)","proposito":"Registrar número","detalle":"","tipo":"numerico","unidad":"rep","hora_objetivo":"05:17","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":"Sí"},{"id":"v_manifiesto","orden":"7","nombre":"Manifiesto estoico + cuidado personal","proposito":"📜 Canto del Guerrero Eterno","detalle":"Soy un hombre. Soy un hombre. Levántate y sé un hombre.\n\nLa vida es implacable, pero más implacable debe ser mi determinación.\nDebo tomar las decisiones difíciles. Hacer los sacrificios necesarios.\nPoseo una fuerza interior que me impulsa a prevalecer y superar mis propios límites.\nRespira profundamente hacia el cerebro, deja que circule por todo tu cuerpo:\nInteligencia, estado de flujo, eustrés, fuerza, poder y salud\n\nMe digo a mí mismo:\n1. Yo elijo mi respuesta\n2. La virtud está aquí\n3. Hoy es lo que más importa\n4. Soy suficiente\n5. Suelto el control (haz lo mejor con lo que está en tu poder, y lo demás acéptalo como viene)\n\nValkron: Sin emoción, solo ejecución","tipo":"checkbox","unidad":"","hora_objetivo":"05:20","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_ejercicio_dia","orden":"8","nombre":"Ejercicio del día","proposito":"Seguir matriz","detalle":"","tipo":"checkbox","unidad":"","hora_objetivo":"05:25","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_voz","orden":"9","nombre":"Ejercicios de voz + Maniobra J","proposito":"","detalle":"","tipo":"checkbox","unidad":"","hora_objetivo":"05:50","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_ducha_manana","orden":"10","nombre":"Ducha fría (mañana)","proposito":"Templanza y claridad","detalle":"Ducha fría, mindfulness","tipo":"checkbox","unidad":"","hora_objetivo":"06:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_prep_salida","orden":"11","nombre":"Preparar a Sabri y la salida al trabajo","proposito":"Atención plena","detalle":"También vestirme; peinar con sábila; vaselina ALROCA cejas, agua de romero, minoxidil.\nTomar 1 taza de agua tibia.\nSabri: 1 huevo con aguacate más pan o verde.","tipo":"checkbox","unidad":"","hora_objetivo":"06:15","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_leche_ajonjoli","orden":"53","nombre":"🥛 Leche de ajonjolí","proposito":"Nutrición","detalle":"Licuar el ajonjolí que quedó remojando anoche y preparar la leche.","tipo":"checkbox","unidad":"","hora_objetivo":"06:20","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_solar_barbilla","orden":"12","nombre":"Bloqueador solar facial + presionar barbilla 30 s","proposito":"Cuidado personal","detalle":"Aplicar bloqueador solar facial + presionar barbilla 30s.","tipo":"checkbox","unidad":"","hora_objetivo":"06:25","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_planificar","orden":"13","nombre":"Planificar el día","proposito":"Planificar día","detalle":"","tipo":"checkbox","unidad":"","hora_objetivo":"06:30","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_desplazamiento","orden":"14","nombre":"Desplazamiento a la escuela y al trabajo","proposito":"Gratitud y foco","detalle":"Enfoque siempre atento, no divagar, ser El StoicMensch – Agradecer 3 cosas + breve charla con Amor y Sabri.\nTramo 1 (Escuela, 20 min, con Sabri): historias cortas, juegos con reglas simples y repetición — no sermones. Ideas: \"detective del camino\" (contar carros rojos = atención sostenida), cuento de 2 min con moraleja donde ella decide qué haría el personaje, micro-reto de comportamiento convertido en juego, dejarla hablar primero.\nTramo 2 (con Amor, 20 min): NO iniciar temas de peso o hábitos alimenticios aunque sea con cariño — puede sentirse como vigilancia. Preguntar cómo se siente, no cómo va \"el objetivo\". Seguirla a ella si quiere hablar de su proceso, no ofrecer consejos técnicos sin que los pida. Usar el trayecto para construir equipo en otra cosa (planear algo juntos, resolver un problema doméstico, reírse).\nLo que sí se conserva: la auditoría verbal para mí mismo (exponer un problema en voz baja, estructura premisa-conclusión) — no depende de audiencia.","tipo":"checkbox","unidad":"","hora_objetivo":"06:40","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_notion","orden":"15","nombre":"Registro y revisión Notion","proposito":"Trazabilidad","detalle":"Registro y revisión diario laboral + personal.","tipo":"checkbox","unidad":"","hora_objetivo":"07:30","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_ajedrez","orden":"16","nombre":"Ajedrez + Duolingo","proposito":"Aprendizaje y gamificación","detalle":"Jugar 3 partidas de ajedrez rápido y 1 clase Duolingo","tipo":"checkbox","unidad":"","hora_objetivo":"07:40","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_pomodoro","orden":"17","nombre":"⏱️ Bloques de trabajo (Pomodoro 90/15)","proposito":"Un solo aviso al día","detalle":"Trabajo en bloques de 90 min de enfoque + 15 min de pausa. Este es el único recordatorio de trabajo del día: no se marca cada bloque. En las pausas, haz los hábitos de abajo (parpadeo, postura, respiración, cuello…).","tipo":"checkbox","unidad":"","hora_objetivo":"08:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_mewing","orden":"18","nombre":"👅 Mewing","proposito":"Postura lingual todo el día","detalle":"Lengua en el paladar, labios cerrados, respiración nasal. Úsalo sobre todo cuando te concentres.","tipo":"checkbox","unidad":"","hora_objetivo":"08:05","activo":"Sí","duracion_min":"","recordar":"Sí","bloque":"","critica":""},{"id":"v_parpadeo","orden":"19","nombre":"👁️ Parpadear (voluntario)","proposito":"Evitar ojos secos y tensión","detalle":"Parpadeo lento y consciente: 5 parpadeos lentos + enfoque lejano 20 s cada 20-60 min (regla 20-20-20). Es lo que olvido cuando me concentro. Incluye ejercicios de vista.","tipo":"checkbox","unidad":"","hora_objetivo":"08:10","activo":"Sí","duracion_min":"","recordar":"Sí","bloque":"","critica":""},{"id":"v_postura","orden":"20","nombre":"🧍 Postura erguida","proposito":"Sentarme recto sin apoyar la espalda","detalle":"Recordar sentarme recto sin apoyar la espalda; hombros atrás y abajo.","tipo":"checkbox","unidad":"","hora_objetivo":"08:15","activo":"Sí","duracion_min":"","recordar":"Sí","bloque":"","critica":""},{"id":"v_pantorrillas","orden":"21","nombre":"🦵 Pantorrillas flexionadas","proposito":"Contador: toca +1 cada vez que flexiones las pantorrillas","detalle":"Contraer gemelos 5-10 s, 5 rep por bloque, varias veces al día. Sóleo push-ups 2-2-4 (50-100 rep) cada 30-60 min sentado. Opcional: \"flotar\" en la silla y pedalear unilateral con el cuádriceps.","tipo":"numerico","unidad":"veces · meta 4","hora_objetivo":"08:20","activo":"Sí","duracion_min":"","recordar":"Sí","bloque":"","critica":""},{"id":"v_resp_diafragmatica","orden":"22","nombre":"🫁 Respiración diafragmática","proposito":"Respiración nasal base","detalle":"Respiración nasal; vacío abdominal funcional solo durante la exhalación profunda (succión bajo las costillas, no permanente). Cíclica 5-5 + suspiro fisiológico (2 min) cada 90 min de trabajo.","tipo":"checkbox","unidad":"","hora_objetivo":"08:25","activo":"Sí","duracion_min":"","recordar":"Sí","bloque":"","critica":""},{"id":"v_humming","orden":"23","nombre":"🎵 Humming","proposito":"Voz y calma","detalle":"3-5 veces al día, 30-60 s, boca cerrada.","tipo":"checkbox","unidad":"","hora_objetivo":"08:30","activo":"Sí","duracion_min":"","recordar":"Sí","bloque":"","critica":""},{"id":"v_noticias","orden":"24","nombre":"Escuchar noticias","proposito":"Estar informado sin saturarme","detalle":"Escuchar noticias en el teléfono (una vez al día).","tipo":"checkbox","unidad":"","hora_objetivo":"09:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_mindfulness","orden":"25","nombre":"🧘 Mindfulness","proposito":"Atención plena breve","detalle":"1-2 min: notar la respiración, el cuerpo y el entorno sin juzgar. Puede hacerse en la ducha fría o en una pausa.","tipo":"checkbox","unidad":"","hora_objetivo":"09:15","activo":"Sí","duracion_min":"2","recordar":"Sí","bloque":"","critica":""},{"id":"v_cuello","orden":"26","nombre":"🦒 Ejercicio de cuello","proposito":"Movilidad y descarga cervical","detalle":"Cuello: 4 direcciones × 10 s × 2 rondas, intensidad 70-80 % (nunca máxima). ECM↔cervicales posteriores: 5 s × 2 series por dirección. Estiramiento cervical suave.","tipo":"checkbox","unidad":"","hora_objetivo":"09:30","activo":"Sí","duracion_min":"","recordar":"Sí","bloque":"","critica":""},{"id":"v_ciclo","orden":"27","nombre":"Ciclo antagonista StoicMensch","proposito":"Antagonismo en segundo plano","detalle":"CICLO ANTAGONISTA STOICMENSCH — Guía de activación corporal, respiratoria y cognitiva.\nParámetros: 15-20 min por ciclo, 2-3 sesiones diarias, intensidad 40-60% de contracción máxima percibida, respiración nasal constante, sin contener el aire.\n\nI. Pantorrillas y piernas: Gemelos↔Tibiales (10 rep×2 series), Femoral↔Cuádriceps (8 rep/pierna×2 series, también lateral).\nII. Core: Abdominales↔Lumbares (3rep×3 series de 5s), Oblicuos↔Oblicuos contrarios (5s/lado×2 series).\nIII. Serratos↔Romboides/Dorsales: empujar adelante separando escápulas (5s) / codos atrás juntando escápulas (5s), 8 rep×2 series.\nIV. Pectorales↔Dorsales (8 rep×2 series de 5s), Bíceps↔Tríceps (6 rep/brazo×2 series), Antebrazos flexores↔extensores (10s×2 rep).\nV. Trapecios↔depresores escapulares (8 rep), ECM↔cervicales posteriores (5s×2 series por dirección).\nVI. Maseteros↔suprahioideos (8 rep×2 series), Mewing+Humming (1 min), vocalización \"rrrraaa\" con falsete (3×20s).\n\nRespiración: cíclica 5-5 + suspiro fisiológico (2 min, cada 90 min de trabajo). Pranayama situacional: Kapalabhati matinal (3×30s), Nadi Shodhana diurno (4 min), 4-2-6 nocturno. Buteyko 5 min, 2-3 veces al día.\nBloques 90/15: 90 min enfoque total + 15 min de ciclo antagonista o respiración consciente (2 min resp 5-5, 30s humming, 10s estiramiento cervical).\nCierre (1 min): inhala 4s, retén 2s, exhala 6s. \"Soy energía disciplinada, presencia templada y propósito constante.\"\n\n--- MODO FUERZA (versión corta, 8-12 min, 85-95% esfuerzo, 1x/día entre 10h-16h) ---\nI. Pantorrillas: elevación isométrica unilateral, 20s/pierna×2, descanso 10s.\nII. Cuádriceps/femorales: silla invisible 45s×2, empujar suelo e intentar \"abrir\" rodillas.\nIII. Glúteos: contracción máxima bilateral 10s×10 rep, descanso 3s.\nIV. Pectoral↔Dorsal: 20s cada fase×2 ciclos.\nV. Bíceps↔Tríceps: co-contracción isométrica 15s por fase×2/brazo.\nVI. Agarre: crush grip (toalla/pelota) 30s×3.\nVII. Cuello de combate: 4 direcciones×10s×2 rondas, intensidad 70-80% (nunca máxima).\nCierre neurológico (1 min): inhalar 4s / exhalar 6s ×5 ciclos.\n\n--- MÓDULO DE ACTIVACIÓN INVISIBLE (hábitos transversales todo el día) ---\nRespiración base nasal + lengua en el paladar todo el día. Vacío abdominal funcional en cada exhalación profunda (succión bajo costillas, solo durante exhalación, no permanente).\nSoleus push-ups: cada 30-60 min sentado, 50-100 rep.\nActivación de pantorrillas: contraer gemelos 5-10s, 5 rep por bloque, varias veces al día.\nHigiene visual cada 30-60 min: 5 parpadeos lentos + enfoque lejano 20s.\nHumming 3-5 veces al día, 30-60s, boca cerrada.\nPostura lingual durante concentración: lengua en paladar, labios cerrados, nasal.","tipo":"checkbox","unidad":"","hora_objetivo":"10:00","activo":"Sí","duracion_min":"20","recordar":"No","bloque":"","critica":""},{"id":"v_mudras","orden":"28","nombre":"Mudras (manos)","proposito":"Calma, concentración y vitalidad","detalle":"1. Gyan Mudra: yema de índice con yema de pulgar. Calma mental, concentración, memoria. Apriete con fuerza progresiva.\n2. Shuni/Apana Mudra: pulgar con medio (o medio+anular). Anti-estrés, estabilidad emocional. Contracción 5-10s.\n3. Prithvi/Surya Mudra: pulgar con anular. Fuerza y vitalidad, estimula metabolismo.\n4. Hakini Mudra: puntas de los dedos de ambas manos juntas frente al pecho. Coordinación hemisférica, memoria, respiración profunda.","tipo":"checkbox","unidad":"","hora_objetivo":"10:30","activo":"Sí","duracion_min":"5","recordar":"No","bloque":"","critica":""},{"id":"v_resp_controlada","orden":"29","nombre":"Respiración controlada (cuadrada / Buteyko)","proposito":"Regulación del SNC","detalle":"Respiración cuadrada. Buteyko 5 min, 2-3 veces al día. Pranayama situacional: Kapalabhati matinal (3×30 s), Nadi Shodhana diurno (4 min), 4-2-6 nocturno. App Buteyko en R (Shiny).","tipo":"checkbox","unidad":"","hora_objetivo":"11:00","activo":"Sí","duracion_min":"5","recordar":"No","bloque":"","critica":""},{"id":"v_caminar","orden":"30","nombre":"Caminar (sin pantalla)","proposito":"Regulación del SNC","detalle":"Solo caminar.","tipo":"checkbox","unidad":"","hora_objetivo":"11:30","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_lectura_dopamina","orden":"31","nombre":"Dopamina lectora","proposito":"Dopamina lectora, oración hacia los lados para antebrazos","detalle":"Ver cómo entrenar a mi cerebro para que la lectura produzca dopamina","tipo":"checkbox","unidad":"","hora_objetivo":"12:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_masaje_capilar","orden":"32","nombre":"Masaje capilar caminando + control de impulso","proposito":"Leer sobre el control de impulso","detalle":"Masajes capilares caminando; leer sobre el control de impulso.","tipo":"checkbox","unidad":"","hora_objetivo":"12:30","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_neuroplasticidad","orden":"33","nombre":"Neuroplasticidad: retar al cerebro","proposito":"Resolución de problemas y memoria de trabajo","detalle":"Ejercicios de resolución de problemas y memoria de trabajo; juegos mentales avanzados.","tipo":"checkbox","unidad":"","hora_objetivo":"13:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_almuerzo","orden":"34","nombre":"Almuerzo (desactivado: ayuno 16:8)","proposito":"","detalle":"1. Almuerzo\n2. A los pocos minutos: leche, guineos, avena y chía\n3. A los 10 minutos: 1 café, esperar 15 min para cepillarse los dientes","tipo":"checkbox","unidad":"","hora_objetivo":"13:15","activo":"No","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_podcast_estoico","orden":"35","nombre":"🎧 Podcast estoico","proposito":"Dicotomía del control","detalle":"Escuchar un podcast estoico y aplicar la dicotomía del control.","tipo":"checkbox","unidad":"","hora_objetivo":"13:30","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_ingles","orden":"36","nombre":"🇬🇧 Inglés: escucha repetida (10-15 min)","proposito":"Comprensión auditiva en inglés","detalle":"Escuchar 1 episodio corto de podcast en inglés, 2 o 3 veces (el mismo episodio), a velocidad 0.75x. Con subtítulos en inglés cuando pueda verlo en pantalla. Si hay traslado, tenerlo descargado para escuchar sin conexión.","tipo":"checkbox","unidad":"","hora_objetivo":"14:00","activo":"Sí","duracion_min":"15","recordar":"No","bloque":"","critica":""},{"id":"v_oratoria","orden":"37","nombre":"🎤 Estudiar el curso de oratoria","proposito":"Productividad - Oratoria estratégica","detalle":"Método Cornell para notas.","tipo":"checkbox","unidad":"","hora_objetivo":"14:30","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_swh","orden":"38","nombre":"Curso SWH","proposito":"Enfoque siempre atento, no divagar, ser el StoicMensch","detalle":"","tipo":"checkbox","unidad":"","hora_objetivo":"15:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_antagonismo_total","orden":"39","nombre":"Antagonismo total (20-25 min)","proposito":"Antagonismo en segundo plano","detalle":"Ciclo StoicMensch de Antagonismo Total — 20-25 min, diario con variación (3 fuertes/2 medios/2 ligeros). Cada bloque 1-2 min (30-40s tensión → 20s descanso → 2-3 rep).\n1. Pantorrillas: talón en puntillas unipodal + tibial anterior, 3×30s/pierna.\n2. Piernas: cuádriceps vs isquios/glúteos sentado, 3×30s alternando.\n3. Pubococcígeo (PC): contracción máxima 3×20 + aguante isométrico 3×10s.\n4. Core frontal vs posterior: 3×30s.\n5. Pectorales vs dorsales: 3×30s.\n6. Bíceps vs tríceps: 3×12 rep lentas por brazo.\n7. Antebrazos flexores vs extensores: 3×15 rep.\n8. Cuello y trapecio: 4 direcciones×3×10s.\n9. Respiración final: inspirar 5s, retener 2s (\"inteligencia, fuerza, salud, paz, voluntad de poder\"), exhalar 6s ×5 ciclos.\nProgresión: 2×30s por grupo → después de 2 semanas, 3×40s. Micro-práctica de oficina: 2-3x/día core antagonista sentado (30s).\nEnfoque StoicMensch: refuerza voluntad de poder (resistencia autogenerada) y templanza (calma bajo tensión sostenida).","tipo":"checkbox","unidad":"","hora_objetivo":"15:30","activo":"Sí","duracion_min":"25","recordar":"No","bloque":"","critica":""},{"id":"v_dicotomia","orden":"40","nombre":"Dicotomía del control","proposito":"No importa lo que te ocurre sino cómo reaccionas a ello","detalle":"No importa lo que te ocurre, sino cómo reaccionas a ello.","tipo":"checkbox","unidad":"","hora_objetivo":"16:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_visualizacion_negativa","orden":"41","nombre":"Visualización negativa / memento mori","proposito":"Premeditatio malorum","detalle":"Visualización negativa; memento mori.","tipo":"checkbox","unidad":"","hora_objetivo":"16:30","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_regreso","orden":"42","nombre":"Regreso a casa","proposito":"Aprovechar el tiempo para entrenar cognición en familia, reflexión de qué se hizo bien o mal","detalle":"1 minuto revisar mi día: hoy he dado un paso en lo que de verdad importa en mi vida — si es afirmativo, enhorabuena; si no, qué me lo ha impedido.","tipo":"checkbox","unidad":"","hora_objetivo":"17:30","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_familiar","orden":"43","nombre":"👨‍👩‍👧 Tiempo familiar + suplementos","proposito":"Amor + anabolismo","detalle":"Tomar cúrcuma y jengibre (+pimienta), maca negra / fenogreco / argenon proteína / creatina","tipo":"checkbox","unidad":"","hora_objetivo":"18:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_jugo","orden":"44","nombre":"🥤 Jugo inmunológico","proposito":"Humildad","detalle":"Reconocimiento a mi propio esfuerzo diario: batido verde + ajo + cúrcuma + jengibre","tipo":"checkbox","unidad":"","hora_objetivo":"18:15","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_zanahoria","orden":"54","nombre":"🥕 Zanahoria","proposito":"Nutrición diaria","detalle":"Comer la zanahoria del día (cruda, en jugo o cocida).","tipo":"checkbox","unidad":"","hora_objetivo":"18:16","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_remolacha","orden":"55","nombre":"🍠 Remolacha","proposito":"Nutrición diaria","detalle":"Comer la remolacha del día (en jugo o cocida).","tipo":"checkbox","unidad":"","hora_objetivo":"18:17","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_ajo","orden":"56","nombre":"🧄 Ajo","proposito":"Nutrición diaria","detalle":"Comer el ajo del día (en el batido o en la merienda).","tipo":"checkbox","unidad":"","hora_objetivo":"18:18","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_cocinar","orden":"45","nombre":"🍳 Cocinar merienda y para siguiente día","proposito":"Disciplina","detalle":"Recordar la incomodidad voluntaria","tipo":"checkbox","unidad":"","hora_objetivo":"18:25","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_cena","orden":"46","nombre":"🍽️ Cena familiar","proposito":"Vínculo","detalle":"Conversación en familia.\nMerienda: 4 huevos, aguacate (Liz Trujillo: 1 huevo). Comer ajo.","tipo":"checkbox","unidad":"","hora_objetivo":"18:45","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_sabri","orden":"47","nombre":"👧 Tiempo con Sabri","proposito":"Paternidad","detalle":"Tiempo de calidad","tipo":"checkbox","unidad":"","hora_objetivo":"19:15","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_ducha_noche","orden":"48","nombre":"🚿 Ducha fría (noche)","proposito":"Termogénesis","detalle":"","tipo":"checkbox","unidad":"","hora_objetivo":"19:45","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_estudio","orden":"49","nombre":"📖 Trabajo DATUM / Estudio UTPL","proposito":"Progreso académico","detalle":"40 min de bloque sin distractores.","tipo":"checkbox","unidad":"","hora_objetivo":"20:00","activo":"Sí","duracion_min":"40","recordar":"No","bloque":"","critica":""},{"id":"v_ajonjoli_remojo","orden":"57","nombre":"🌙 Remojar ajonjolí","proposito":"Para la leche de mañana","detalle":"Poner el ajonjolí a remojar ahora: mañana temprano se hace la leche de ajonjolí.","tipo":"checkbox","unidad":"","hora_objetivo":"20:30","activo":"Sí","duracion_min":"","recordar":"Aviso","bloque":"","critica":""},{"id":"v_lectura","orden":"50","nombre":"📚 Lectura + conversación","proposito":"Minoxidil / hidroquinona, apagado digital / dermaroller","detalle":"","tipo":"checkbox","unidad":"","hora_objetivo":"20:45","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_mejor_persona","orden":"58","nombre":"🤝 Ser mejor cada día","proposito":"Mejor padre, esposo, hijo, hermano, amigo y persona","detalle":"Elige una acción concreta de hoy para cada rol: una llamada, un mensaje, diez minutos de atención plena a quien tengo cerca. Antes de dormir, marca si la hiciste.","tipo":"checkbox","unidad":"","hora_objetivo":"21:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_relax","orden":"51","nombre":"🌌 Relax pre-sueño","proposito":"Parasimpático","detalle":"Respiración 4-7-8, estiramiento suave, vaselina ALROCA","tipo":"checkbox","unidad":"","hora_objetivo":"21:15","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""},{"id":"v_dormir","orden":"52","nombre":"🛌 Dormir","proposito":"Sueño profundo","detalle":"Mi cuerpo es una máquina perfecta en evolución. No he venido a rendirme, he venido a luchar. Esta noche descanso para reconstruirme más fuerte. Ya cumplí mi deber por hoy; nada es urgente. Lo que no resolví, no me pertenece. Ahora es tiempo de silencio, oscuridad y renovación.","tipo":"checkbox","unidad":"","hora_objetivo":"22:00","activo":"Sí","duracion_min":"","recordar":"No","bloque":"","critica":""}];
+let USANDO_SEMILLA = false;
 let REGISTROS = [];
 let FAMILIA = [];
 let RACHAS = [];
@@ -881,8 +908,9 @@ let SUENOS = [];
 let COMIDAS = [];
 let TOKEN = '';
 try{ TOKEN = localStorage.getItem(TOKEN_KEY) || ''; }catch(e){}
-let SERVER_V2 = false; // true cuando el Apps Script desplegado ya conoce la colección «estres»
-let SERVER_V3 = false; // true cuando conoce también bienestar, suenos y comidas (versión 3)
+let SERVER_V2 = false, SERVER_V3 = false; try{ const sv=+localStorage.getItem('jamr_server_v')||0; SERVER_V2 = sv>=2; SERVER_V3 = sv>=3; }catch(e){}
+let _SV_UNUSED = false; // true cuando el Apps Script desplegado ya conoce la colección «estres»
+// true cuando conoce también bienestar, suenos y comidas (versión 3)
 const MIN_VERSION = {estres:2, bienestar:3, suenos:3, comidas:3};
 function servidorSoporta(c){ const m = MIN_VERSION[c]||0; return m===0 || (m===2 ? SERVER_V2 : SERVER_V3); }
 let OUTBOX = [];
@@ -946,22 +974,10 @@ sólo la acción justa, precisa y templada.
 Valkron me libera de humana flaqueza,
 Valkron es mi ancla, mi faro y mi alteza.
 
-Goal Hunter, Valkron es mi nombre,
-fría es mi mano donde arde el hombre;
-no persigo pérdida ni fortuna ciega,
-mi regla es la espada que jamás se entrega.
-
-Ocho son mis flechas, ninguna es capricho,
-el checklist mi escudo, la paciencia mi nicho;
-si el día no ofrece batalla certera,
-envaino el acero y el alba me espera.
-
-No es el azar quien rige mi apuesta:
-es la disciplina quien gana la gesta.
 SCAMPER mis límites, Kaizen mi sendero,
 Active Recall afila mi acero,
 Pomodoro marca mi avance certero,
-Space Repetition templa mi verbo sincero.
+Spaced Repetition templa mi verbo sincero.
 
 Austero ante el oro, firme ante el miedo,
 cada moneda es cimiento y no anhelo.
@@ -989,7 +1005,11 @@ let lastSyncError = '';
 function ensureEndpoint(force=false){
   if(!ENDPOINT || force){
     const url = prompt('Pega la URL del Web App de Apps Script (Deploy > Web app):', ENDPOINT||'');
-    if(url && url.trim()){ ENDPOINT = url.trim(); localStorage.setItem(ENDPOINT_KEY, ENDPOINT); }
+    if(url && url.trim()){
+      const u = url.trim();
+      if(/^https:\/\/script\.google\.com\/(?:a\/macros\/[^\/\s]+\/|macros\/)s\/[^\s\/]+\/exec$/.test(u)){ ENDPOINT = u; localStorage.setItem(ENDPOINT_KEY, ENDPOINT); }
+      else avisar('Esa dirección no parece la URL de un Web App de Apps Script: debe empezar con https://script.google.com/macros/s/ y terminar en /exec.');
+    }
     if(force){
       const t = prompt('Token de acceso (déjalo vacío si el servidor no usa token; escribe - para borrar el guardado):', TOKEN ? '(ya guardado)' : '');
       if(t !== null && t.trim() && t.trim() !== '(ya guardado)'){
@@ -1029,7 +1049,7 @@ async function leerJsonSeguro(res){
     return obj;
   }
   catch(e){
-    if(e && e.message === 'NO_AUTORIZADO') throw new Error('El servidor rechazó el token. En Config > «Servidor» vuelve a ingresar el token de acceso.');
+    if(e && e.message === 'NO_AUTORIZADO') throw new Error('El servidor rechazó el token. Toca «Servidor / Sheet» (arriba) y vuelve a ingresar el token de acceso.');
     const pareceHtml = txt.trim().startsWith('<');
     throw new Error(pareceHtml
       ? 'El servidor devolvió una página HTML, no datos. Revisa en Config que la URL termine en /exec y que el Web App tenga acceso "Cualquier usuario"; si usas varias cuentas de Google en este navegador, prueba en una ventana de incógnito.'
@@ -1058,6 +1078,15 @@ function loadLocalCache(){
   try{ const s = localStorage.getItem(LOCAL_SUENOS_KEY); if(s) SUENOS = JSON.parse(s); }catch(e){}
   try{ const s = localStorage.getItem(LOCAL_COMIDAS_KEY); if(s) COMIDAS = JSON.parse(s); }catch(e){}
   try{ const s = localStorage.getItem(OUTBOX_KEY); if(s) OUTBOX = JSON.parse(s); }catch(e){}
+  // Instalación nueva o sin sincronizar nunca: se usan las actividades de fábrica para que la app sirva desde el primer uso, sin señal.
+  if(!Array.isArray(ACTIVIDADES) || ACTIVIDADES.length===0){ ACTIVIDADES = ACTIVIDADES_SEMILLA.map(a=>Object.assign({}, a)); USANDO_SEMILLA = true; }
+}
+function mostrarAvisoCuota(){
+  if(!document.body || document.getElementById('avisoCuota')) return;
+  const el = document.createElement('div'); el.id = 'avisoCuota'; el.setAttribute('role','alert');
+  el.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:150;background:#3a1d12;border:1px solid var(--amber);color:var(--text);padding:10px 12px;font-size:12.5px;line-height:1.5;';
+  el.innerHTML = '<b>Almacenamiento lleno.</b> Lo último que registraste puede no haberse guardado. Exporta una copia en Config → Copia de seguridad y libera espacio. <button class="btn small" onclick="this.parentNode.remove()">Entendido</button>';
+  document.body.appendChild(el);
 }
 function saveLocalCache(){
   // Cada clave va aparte: si una falla (cuota llena, modo privado), las demás igual se guardan
@@ -1089,16 +1118,27 @@ function saveLocalCache(){
   for(const [k,v] of pares){
     try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ fallo = true; }
   }
-  if(fallo && !window.__avisoCuota){ window.__avisoCuota = true; console.warn("Valkron: no se pudo guardar parte de la caché local."); }
+  if(fallo){ try{ mostrarAvisoCuota(); }catch(e){} }
 }
-function encolarOperacion(op){ OUTBOX.push(op); saveLocalCache(); flushOutbox(); }
+const ENVIANDO = new Set();
+function encolarOperacion(op){
+  try{
+    if(op.type==='update'){
+      const ant = OUTBOX.find(o=>!ENVIANDO.has(o) && o.collection===op.collection && o.type==='update' && o.id===op.id);
+      if(ant){ ant.record = Object.assign({}, ant.record, op.record); ant.ts = op.ts; saveLocalCache(); flushOutbox(); return; }
+      const cre = OUTBOX.find(o=>!ENVIANDO.has(o) && o.collection===op.collection && o.type==='create' && o.record && o.record.id===op.id);
+      if(cre){ Object.assign(cre.record, op.record); cre.ts = op.ts; saveLocalCache(); flushOutbox(); return; }
+    }
+  }catch(e){}
+  OUTBOX.push(op); saveLocalCache(); flushOutbox();
+}
 
 async function flushOutbox(){
   if(syncing) return;
-  if(!ENDPOINT){ lastSyncError = 'No hay URL del Web App configurada en este dispositivo.'; return; }
+  if(!ENDPOINT){ return; }   // modo local: no es un error
   if(OUTBOX.length===0){ return; } // no toca lastSyncError: puede haber un error de GET vigente que no debe borrarse aquí
   syncing = true; renderAll();
-  const pendientes = [...OUTBOX]; const siguen = []; let err = '';
+  const pendientes = [...OUTBOX]; const siguen = []; let err = ''; pendientes.forEach(o=>ENVIANDO.add(o));
   for(const op of pendientes){
     try{
       const collection = op.collection || 'registros';
@@ -1112,7 +1152,10 @@ async function flushOutbox(){
     }catch(e){ siguen.push(op); err = (e&&e.message)?e.message:String(e); }
   }
   if(err) lastSyncError = err;
-  OUTBOX = siguen; saveLocalCache(); syncing = false; renderAll();
+  pendientes.forEach(o=>ENVIANDO.delete(o));
+  OUTBOX = siguen.concat(OUTBOX.filter(o=>pendientes.indexOf(o)===-1));   // lo encolado MIENTRAS se enviaba no se pierde
+  saveLocalCache(); syncing = false; renderAll();
+  if(!err && OUTBOX.some(o=>pendientes.indexOf(o)===-1)) flushOutbox();   // llegaron marcas mientras se enviaba: enviarlas ya
 }
 let syncFallos = [];
 async function syncCollection(collection, getArr, setArr, opts={}){
@@ -1141,12 +1184,13 @@ async function syncCollection(collection, getArr, setArr, opts={}){
       if(t) Object.assign(t, op.record);
     }
   });
-  setArr(merged);
+  const borrando = new Set(OUTBOX.filter(o=>o.collection===collection && o.type==='delete').map(o=>o.id));
+  setArr(borrando.size ? merged.filter(r=>!borrando.has(r.id)) : merged);
   return true;
 }
 let syncEnCurso = false;
 async function syncWithCloud(){
-  if(!ENDPOINT){ lastSyncError = 'No hay URL del Web App configurada en este dispositivo.'; return; }
+  if(!ENDPOINT){ lastSyncError = ''; return; }   // modo local: no es un error
   if(syncEnCurso) return;                                       // el temporizador de 45 s no apila sincronizaciones
   if(typeof navigator!=='undefined' && navigator.onLine===false){ lastSyncError = 'Sin conexión: trabajando con los datos guardados en este dispositivo.'; return; }
   syncEnCurso = true;
@@ -1157,10 +1201,11 @@ async function syncWithCloud(){
 async function syncWithCloudInterno(){
   syncFallos = [];
   if(!SERVER_V3){
-    try{ const v = await apiGet('version'); SERVER_V2 = !!(v && v.version>=2); SERVER_V3 = !!(v && v.version>=3); }
-    catch(e){ if(e && e.red) throw e; SERVER_V2 = false; SERVER_V3 = false; }       // sin red: se corta aquí, no se intentan 17 colecciones
+    try{ const v = await apiGet('version'); SERVER_V2 = !!(v && v.version>=2); SERVER_V3 = !!(v && v.version>=3); try{ localStorage.setItem('jamr_server_v', String((v&&v.version)||0)); }catch(e2){} }
+    catch(e){ if(e && e.red) throw e; }       // sin red: se corta aquí, no se intentan 17 colecciones
   }
   const ok1 = await syncCollection('actividades', ()=>ACTIVIDADES, (m)=>{ACTIVIDADES=m;}, {borrarSiFaltaEnNube:true});
+  if(ok1 && USANDO_SEMILLA && ACTIVIDADES.some(a=>!ACTIVIDADES_SEMILLA.some(s=>s.id===a.id))) USANDO_SEMILLA = false;
   const ok2 = await syncCollection('registros', ()=>REGISTROS, (m)=>{REGISTROS=m;});
   const ok3 = await syncCollection('familia', ()=>FAMILIA, (m)=>{FAMILIA=m;});
   const ok4 = await syncCollection('rachas', ()=>RACHAS, (m)=>{RACHAS=m;});
@@ -1424,9 +1469,9 @@ function renderStatus(){
   const hayError = !!lastSyncError;
   document.getElementById('statusStrip').innerHTML = `
     <button class="btn secondary small" id="btnServidor" style="height:fit-content;">Servidor / Sheet</button>
-    <button class="btn secondary small" id="btnSync" style="height:fit-content; ${OUTBOX.length>0?'border-color:var(--amber); color:var(--amber);':''}">${syncing?'Sincronizando…':(OUTBOX.length>0?`Sincronizar ahora (${OUTBOX.length})`:'Sincronizado ✓')}</button>
+    <button class="btn secondary small" id="btnSync" style="height:fit-content; ${(ENDPOINT && OUTBOX.length>0)?'border-color:var(--amber); color:var(--amber);':''}">${syncing?'Sincronizando…':(!ENDPOINT?('Modo local'+(OUTBOX.length?` · ${OUTBOX.length} por enviar`:'')):(OUTBOX.length>0?`Sincronizar ahora (${OUTBOX.length})`:'Sincronizado ✓'))}</button>
     <div class="chip"><b>${hoy}</b>${diaSemanaDeFecha(hoy)}</div>
-    ${hayError ? `<div class="chip" style="border-color:#c0392b; color:#e05a4a; max-width:100%; white-space:normal;" title="${lastSyncError.replace(/"/g,'&quot;')}">⚠ ${lastSyncError}</div>` : ''}
+    ${hayError ? `<div class="chip" style="border-color:#c0392b; color:#e05a4a; max-width:100%; white-space:normal;" title="${esc(lastSyncError)}">⚠ ${esc(lastSyncError)}</div>` : ''}
   `;
   document.getElementById('btnServidor').addEventListener('click', async ()=>{ ensureEndpoint(true); await syncWithCloud(); });
   document.getElementById('btnSync').addEventListener('click', ()=>{ manualSync(); });
@@ -1451,6 +1496,214 @@ function idActividadActual(activas){
   }
   return actual.id;
 }
+/* ============ CRONÓMETRO HABLADO (v21) ============
+   Para actividades de segundos con «tope» en la columna unidad (formato: «s · meta 60 · tope 120»).
+   10 s de preparación, aviso por voz cada 30 s, al llegar a la meta, a 10 s del tope, cuenta 5-4-3-2-1 y se detiene
+   solo en el tope. Funciona sin conexión (voz del propio teléfono; si no hay voz, pitidos distintos). Registra la mejor marca. */
+const CRONO_PREP_S = 10;
+function topeDe(a){ const m = /tope\s*(\d+)/i.exec(String(a && a.unidad || '')); return m ? +m[1] : null; }
+function cronoFmt(s){ s = Math.max(0, Math.floor(s)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+function cronoHablado(s){
+  s = Math.floor(s); const m = Math.floor(s/60), r = s%60;
+  const nm = m===1 ? 'un minuto' : (['cero','un','dos','tres','cuatro','cinco'][m] || String(m)) + ' minutos';
+  if(m===0) return r + ' segundos';
+  return r===0 ? nm : nm + ' ' + r;
+}
+function cronoMensaje(seg, meta, tope){            // texto a decir al llegar al segundo «seg» de la fase en curso, o null
+  if(tope && seg === tope) return 'Tiempo. Suelta.';
+  if(tope && tope - seg >= 1 && tope - seg <= 5) return String(tope - seg);
+  if(meta && seg === meta) return 'Meta cumplida, ' + cronoHablado(meta) + '. Sigue si puedes.';
+  if(tope && tope - seg === 10) return 'Diez segundos';
+  if(seg > 0 && seg % 30 === 0) return cronoHablado(seg);
+  return null;
+}
+function cronoNombreCorto(n){ return String(n || '').replace(/\(.*?\)/g,' ').replace(/°/g,' grados').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim(); }
+function cronoMensajePrep(restan, nombre){
+  if(restan === CRONO_PREP_S) return (nombre ? nombre + '. ' : 'Prepárate. ') + 'Empiezas en diez segundos';
+  if(restan >= 1 && restan <= 5) return String(restan);
+  return null;
+}
+function cronoTipo(m){ return /^Tiempo/.test(m) ? 'fin' : /^Meta/.test(m) ? 'meta' : /^\d$/.test(m) ? 'cuenta' : 'aviso'; }
+const CRONO = {id:null, fase:'listo', faseAntes:'run', t0:0, acum:0, ult:-1, timer:null, wake:null, tope:0, meta:0, voz:null, corriendo:false, bloqueo:0, hist:false, nombre:''};
+let cronoAhora = () => Date.now();
+window.__cronoSetReloj = (f) => { cronoAhora = f; };
+function cronoBloqueado(){ return cronoAhora() < CRONO.bloqueo; }       // ignora el segundo toque de un doble toque
+function cronoSenal(tipo){
+  const pat = {cuenta:[[880,110]], aviso:[[660,220]], meta:[[660,150],[880,150],[1040,220]], fin:[[440,700]]}[tipo] || [[880,150]];
+  pat.forEach((p,i)=> setTimeout(()=>cronoPitar(p[0], p[1]), i*260));
+  cronoVibrar(tipo==='fin' ? [400,120,400] : tipo==='meta' ? [120,80,120] : tipo==='aviso' ? [90] : [40]);
+}
+function cronoDecir(txt, tipo){
+  tipo = tipo || cronoTipo(txt);
+  try{
+    if(typeof speechSynthesis !== 'undefined' && typeof SpeechSynthesisUtterance !== 'undefined'){
+      if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(txt); u.lang = 'es-ES'; u.rate = 1.05;
+      if(!CRONO.voz){ const vs = speechSynthesis.getVoices ? speechSynthesis.getVoices() : []; CRONO.voz = vs.find(v=>/^es/i.test(v.lang)) || null; }
+      if(CRONO.voz) u.voice = CRONO.voz;
+      u.onerror = () => cronoSenal(tipo);
+      speechSynthesis.speak(u);
+      if(tipo === 'fin' || tipo === 'meta') cronoVibrar(tipo==='fin' ? [300,100,300] : [120,80,120]);
+      return;
+    }
+  }catch(e){}
+  cronoSenal(tipo);
+}
+function cronoPitar(freq, ms){
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+    CRONO.ac = CRONO.ac || new AC(); const o = CRONO.ac.createOscillator(), g = CRONO.ac.createGain();
+    o.frequency.value = freq; g.gain.value = 0.25; o.connect(g); g.connect(CRONO.ac.destination); o.start(); o.stop(CRONO.ac.currentTime + ms/1000);
+  }catch(e){}
+}
+function cronoVibrar(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+async function cronoPantalla(on){
+  try{
+    if(on){ if(navigator.wakeLock && !CRONO.wake){ CRONO.wake = await navigator.wakeLock.request('screen'); CRONO.wake.addEventListener && CRONO.wake.addEventListener('release', ()=>{ CRONO.wake = null; }); } }
+    else if(CRONO.wake){ await CRONO.wake.release(); CRONO.wake = null; }
+  }catch(e){ CRONO.wake = null; }
+}
+function cronoMs(){ return CRONO.acum + (CRONO.corriendo ? (cronoAhora() - CRONO.t0) : 0); }
+function cronoSegundos(){ return Math.floor(cronoMs() / 1000); }
+function cronoOv(){
+  let ov = document.getElementById('cronoOv');
+  if(!ov){
+    ov = document.createElement('div'); ov.id = 'cronoOv'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+    ov.innerHTML = '<div class="crono-caja"><div class="crono-nombre" id="cronoNombre"></div><div class="crono-fase" id="cronoFase"></div>' +
+      '<div class="crono-reloj" id="cronoReloj">0:00</div><div class="crono-info" id="cronoInfo"></div><div class="crono-res" id="cronoRes"></div>' +
+      '<div class="crono-btns"><button class="btn crono-grande" id="cronoBDetener" onclick="cronoDetener()">Detener y registrar</button>' +
+      '<button class="btn" id="cronoBIniciar" onclick="cronoIniciar()">Iniciar (10 s de preparación)</button>' +
+      '<button class="btn secondary" id="cronoBPausar" onclick="cronoPausar()">Pausar</button>' +
+      '<button class="btn secondary crono-chico" id="cronoBCerrar" onclick="cronoCerrar()">Cerrar</button></div></div>';
+    document.body.appendChild(ov);
+  }
+  return ov;
+}
+function cronoBotones(fase){
+  const v = (id, mostrar) => { const e = document.getElementById(id); if(e) e.style.display = mostrar ? 'block' : 'none'; };
+  v('cronoBIniciar', fase==='listo'); v('cronoBDetener', fase==='run' || fase==='pausa');
+  v('cronoBPausar', fase==='run' || fase==='pausa'); v('cronoBCerrar', fase!=='run' && fase!=='pausa');
+  const p = document.getElementById('cronoBPausar'); if(p) p.textContent = fase==='pausa' ? 'Reanudar' : 'Pausar';
+  const c = document.getElementById('cronoBCerrar'); if(c) c.textContent = fase==='prep' ? 'Cancelar' : 'Cerrar';
+}
+function cronoPintar(){
+  const f = CRONO.fase; const r = document.getElementById('cronoReloj'); if(!r) return;
+  const seg = cronoSegundos(); let fase = '';
+  if(f==='prep'){ r.textContent = String(Math.max(0, CRONO_PREP_S - seg)); fase = 'Prepárate'; }
+  else { r.textContent = cronoFmt(seg); fase = f==='run' ? 'En curso' : f==='pausa' ? 'En pausa' : f==='fin' ? 'Terminado' : 'Listo'; }
+  r.style.color = (f==='run' && CRONO.meta && seg >= CRONO.meta) ? 'var(--green,#7ec27e)' : '';
+  document.getElementById('cronoFase').textContent = fase;
+  document.getElementById('cronoInfo').textContent = 'Meta ' + (CRONO.meta ? CRONO.meta + ' s' : '—') + ' · Tope ' + CRONO.tope + ' s (se detiene solo)';
+}
+function cronoTick(){
+  if(!CRONO.corriendo) return;
+  const seg = cronoSegundos();
+  if(CRONO.fase === 'prep'){
+    if(seg !== CRONO.ult){ const rest = CRONO_PREP_S - seg; if(rest > 0){ const m = cronoMensajePrep(rest, CRONO.nombre); if(m) cronoDecir(m, rest===CRONO_PREP_S ? 'aviso' : 'cuenta'); } CRONO.ult = seg; }
+    if(seg >= CRONO_PREP_S){                       // termina la preparación → empieza el conteo real
+      CRONO.fase = 'run'; CRONO.acum = 0; CRONO.t0 = cronoAhora(); CRONO.ult = -1;
+      cronoDecir('Ya', 'aviso'); cronoVibrar(200); cronoBotones('run');
+    }
+  } else if(CRONO.fase === 'run'){
+    if(seg !== CRONO.ult){
+      let dicho = null; const hasta = Math.min(seg, CRONO.tope);
+      for(let s = CRONO.ult + 1; s <= hasta; s++){ const m = cronoMensaje(s, CRONO.meta, CRONO.tope); if(m) dicho = m; }
+      CRONO.ult = seg; if(dicho) cronoDecir(dicho);
+    }
+    if(seg >= CRONO.tope){ cronoTerminar(CRONO.tope); return; }
+  }
+  cronoPintar();
+}
+function cronoGuardar(seg){
+  const id = CRONO.id, el = document.getElementById('hoy_' + id);
+  const ex = registroDeHoy(id); const previo = Math.max(ex ? (+ex.valor || 0) : 0, el ? (+el.value || 0) : 0);
+  const nuevo = Math.max(previo, seg);
+  if(el){ el.value = String(nuevo); guardarActividadHoy(id); }
+  return {previo, nuevo, mejora: seg > previo};
+}
+function cronoTerminar(seg){
+  clearInterval(CRONO.timer); CRONO.timer = null; CRONO.corriendo = false; CRONO.fase = 'fin'; CRONO.acum = seg * 1000; CRONO.bloqueo = cronoAhora() + 600;
+  cronoPantalla(false);
+  document.getElementById('cronoReloj').textContent = cronoFmt(seg); document.getElementById('cronoReloj').style.color = '';
+  if(seg < 1){ document.getElementById('cronoRes').textContent = 'No se registró nada (menos de 1 segundo).'; }
+  else {
+    const g = cronoGuardar(seg);
+    document.getElementById('cronoRes').textContent = g.mejora ? ('Registrado: ' + seg + ' s · mejor marca de hoy') : ('Hiciste ' + seg + ' s · se conserva tu mejor marca de hoy: ' + g.nuevo + ' s');
+    if(seg < CRONO.tope) cronoDecir('Registrado. ' + cronoHablado(seg), 'aviso'); else cronoVibrar([300,100,300]);
+  }
+  document.getElementById('cronoFase').textContent = 'Terminado'; cronoBotones('fin');
+}
+window.cronoAbrir = function(id){
+  const a = ACTIVIDADES.find(x => x.id === id); if(!a) return;
+  if(CRONO.corriendo || CRONO.fase === 'pausa') return;                 // ya hay una cuenta en marcha: no se reinicia
+  CRONO.id = id; CRONO.fase = 'listo'; CRONO.acum = 0; CRONO.corriendo = false; CRONO.ult = -1;
+  CRONO.tope = topeDe(a) || 120; CRONO.meta = metaDe(a) || 0; CRONO.nombre = cronoNombreCorto(a.nombre);
+  CRONO.bloqueo = cronoAhora() + 450;
+  if(CRONO.timer){ clearInterval(CRONO.timer); CRONO.timer = null; }
+  cronoOv().style.display = 'flex';
+  document.getElementById('cronoNombre').textContent = a.nombre; document.getElementById('cronoRes').textContent = '';
+  cronoBotones('listo'); cronoPintar();
+  try{ history.pushState({crono:1}, ''); CRONO.hist = true; }catch(e){ CRONO.hist = false; }   // «Atrás» del teléfono no debe sacar de la app
+  try{ if(typeof speechSynthesis !== 'undefined') speechSynthesis.getVoices(); }catch(e){}
+};
+window.cronoIniciar = function(){
+  if(CRONO.fase !== 'listo' || cronoBloqueado()) return;
+  CRONO.fase = 'prep'; CRONO.acum = 0; CRONO.t0 = cronoAhora(); CRONO.corriendo = true; CRONO.ult = -1; CRONO.bloqueo = cronoAhora() + 600;
+  cronoPantalla(true); cronoBotones('prep'); cronoPintar(); cronoTick();
+  CRONO.timer = setInterval(cronoTick, 200);
+};
+window.cronoPausar = function(){
+  if(cronoBloqueado()) return;
+  if(CRONO.fase === 'run'){
+    CRONO.acum = cronoMs(); CRONO.corriendo = false; CRONO.fase = 'pausa'; CRONO.bloqueo = cronoAhora() + 350; cronoBotones('pausa'); cronoPintar();
+  } else if(CRONO.fase === 'pausa'){
+    CRONO.fase = 'run'; CRONO.t0 = cronoAhora(); CRONO.corriendo = true; CRONO.bloqueo = cronoAhora() + 350; cronoBotones('run'); cronoPintar();
+  }
+};
+window.cronoDetener = function(){
+  if(cronoBloqueado()) return;
+  if(CRONO.fase !== 'run' && CRONO.fase !== 'pausa') return;
+  cronoTerminar(Math.min(cronoSegundos(), CRONO.tope));
+};
+window.cronoCerrar = function(){
+  if(cronoBloqueado()) return;
+  let aviso = '';
+  if((CRONO.fase === 'run' || CRONO.fase === 'pausa') && cronoSegundos() >= 1){     // nunca se pierde lo hecho
+    const s = Math.min(cronoSegundos(), CRONO.tope), g = cronoGuardar(s); aviso = 'Registrado: ' + s + ' s' + (g.mejora ? ' (mejor marca de hoy)' : '');
+  }
+  if(CRONO.timer){ clearInterval(CRONO.timer); CRONO.timer = null; }
+  CRONO.corriendo = false; CRONO.fase = 'listo'; cronoPantalla(false);
+  try{ if(typeof speechSynthesis !== 'undefined') speechSynthesis.cancel(); }catch(e){}
+  const ov = document.getElementById('cronoOv'); if(ov) ov.style.display = 'none';
+  if(CRONO.hist){ CRONO.hist = false; try{ history.back(); }catch(e){} }
+  renderHoy(); if(aviso) avisar(aviso);
+};
+window.addEventListener('popstate', ()=>{                                   // botón «Atrás» con el cronómetro abierto
+  const ov = document.getElementById('cronoOv'); if(!ov || ov.style.display !== 'flex') return;
+  CRONO.hist = false;
+  if(CRONO.fase === 'run'){ CRONO.bloqueo = 0; cronoPausar(); try{ history.pushState({crono:1}, ''); CRONO.hist = true; }catch(e){} avisar('Cronómetro en pausa. Toca «Detener y registrar» para guardar.'); }
+  else { CRONO.bloqueo = 0; cronoCerrar(); }
+});
+document.addEventListener('visibilitychange', ()=>{                         // al volver con la pantalla encendida: ponerse al día
+  if(document.hidden || !CRONO.corriendo) return;
+  cronoPantalla(true); cronoTick();
+});
+
+/* ============ AVISO DE MODO (v20): nada bloquea el arranque ============ */
+function renderAvisoModo(){
+  const lista = document.getElementById('hoyLista'); if(!lista) return;
+  let av = document.getElementById('avisoModo');
+  if(!av){ av = document.createElement('div'); av.id = 'avisoModo'; av.className = 'hoy-resumen'; av.style.cssText = 'font-size:12px; line-height:1.55; margin-bottom:10px; border-left:3px solid var(--amber);'; lista.parentNode.insertBefore(av, lista); }
+  const partes = [];
+  if(typeof navigator!=='undefined' && navigator.onLine===false) partes.push('<b>Sin señal.</b> Todo lo que registres se guarda en este teléfono y se envía solo cuando vuelva la red.');
+  if(!ENDPOINT) partes.push('<b>Modo local.</b> Aún no conectas tu Sheet: la app funciona completa y guarda aquí. Cuando tengas señal, conéctalo en Config. <button class="btn small secondary" onclick="conectarSheetAhora()">Conectar ahora</button>');
+  else if(USANDO_SEMILLA) partes.push('Usando las actividades de fábrica hasta la primera sincronización con tu Sheet.');
+  av.style.display = partes.length ? 'block' : 'none'; av.innerHTML = partes.join('<br>');
+}
+window.conectarSheetAhora = async function(){ ensureEndpoint(true); if(ENDPOINT){ try{ await syncWithCloud(); }catch(e){} } renderAll(); };
+window.addEventListener('offline', ()=>{ try{ renderAvisoModo(); }catch(e){} });
+window.addEventListener('online', ()=>{ try{ renderAvisoModo(); }catch(e){} });
+
 /* ============ HOY por bloques (v17) ============
    Cada actividad pertenece a un bloque (columna «bloque» del Sheet; si falta, se deduce de la hora). Los bloques se pliegan,
    muestran su avance y permiten ver la descripción de todo lo que contienen. «critica» = Sí alimenta la franja «No olvidar». */
@@ -1472,6 +1725,7 @@ function actCumplida(a){
 function leerSet(k){ try{ return new Set(JSON.parse(localStorage.getItem(k)||'[]')); }catch(e){ return new Set(); } }
 function guardarSet(k,set){ try{ localStorage.setItem(k, JSON.stringify([...set])); }catch(e){} }
 const BLOQ_ABIERTOS = leerSet('valkron_bloques_abiertos'), BLOQ_CERRADOS = leerSet('valkron_bloques_cerrados'), BLOQ_DESC = new Set();
+try{ if(!localStorage.getItem('valkron_bloques_v21')){ BLOQ_ABIERTOS.clear(); BLOQ_CERRADOS.clear(); guardarSet('valkron_bloques_abiertos', BLOQ_ABIERTOS); guardarSet('valkron_bloques_cerrados', BLOQ_CERRADOS); localStorage.setItem('valkron_bloques_v21','1'); } }catch(e){}   // limpia lo «fijado» por error en versiones anteriores
 window.alternarBloque = function(nombre, abierto){
   if(abierto){ BLOQ_ABIERTOS.add(nombre); BLOQ_CERRADOS.delete(nombre); } else { BLOQ_ABIERTOS.delete(nombre); BLOQ_CERRADOS.add(nombre); }
   guardarSet('valkron_bloques_abiertos', BLOQ_ABIERTOS); guardarSet('valkron_bloques_cerrados', BLOQ_CERRADOS);
@@ -1483,7 +1737,8 @@ window.sumarContador = function(id){
 };
 window.marcarRapido = function(id){
   const a = ACTIVIDADES.find(x=>x.id===id), el = document.getElementById('hoy_'+id); if(!a||!el) return;
-  if(a.tipo==='numerico') sumarContador(id); else { el.checked = true; guardarActividadHoy(id); }
+  if(a.tipo==='numerico' && topeDe(a)) cronoAbrir(id);
+  else if(a.tipo==='numerico') sumarContador(id); else { el.checked = true; guardarActividadHoy(id); }
 };
 function renderNoOlvidar(activas){
   const el = document.getElementById('hoyNoOlvidar'); if(!el) return;
@@ -1503,7 +1758,7 @@ function filaActividadHoy(a, idActual){
     const meta = metaDe(a);
     if(meta){
       return `<div class="${clases}">${info}
-        <div class="valcol contador"><input type="number" id="hoy_${esc(a.id)}" value="${val}" min="0" aria-label="${esc(a.nombre)}" onchange="guardarActividadHoy('${esc(a.id)}')"><span class="meta">/ ${meta}</span><button class="btn small" onclick="sumarContador('${esc(a.id)}')" aria-label="Sumar uno">+1</button></div>
+        <div class="valcol contador${topeDe(a)?' crono':''}"><input type="number" id="hoy_${esc(a.id)}" value="${val}" min="0" aria-label="${esc(a.nombre)}" onchange="guardarActividadHoy('${esc(a.id)}')"><span class="meta">/ ${meta}${(()=>{ const u = String(a.unidad||'').split('·')[0].trim(); return u ? ' '+esc(u) : ''; })()}</span>${topeDe(a) ? `<button class="btn small crono-btn" onclick="cronoAbrir('${esc(a.id)}')" aria-label="Abrir cronómetro hablado">⏱</button>` : `<button class="btn small" onclick="sumarContador('${esc(a.id)}')" aria-label="Sumar uno">+1</button>`}</div>
       </div>`;
     }
     return `<div class="${clases}">${info}
@@ -1515,8 +1770,9 @@ function filaActividadHoy(a, idActual){
   </div>`;
 }
 function renderHoy(){
+  try{ renderAvisoModo(); }catch(e){ console.error('[aviso]', e); }
   document.getElementById('hoyFechaLbl').textContent = `${getHoy()} (${diaSemanaDeFecha(getHoy())}) · ${getHoraActualEcuador()}`;
-  const activas = ACTIVIDADES.filter(a=>a.activo==='Sí' || a.activo===true).sort((a,b)=> (a.hora_objetivo||'').localeCompare(b.hora_objetivo||'') || (+a.orden||0)-(+b.orden||0));
+  const activas = ACTIVIDADES.filter(a=>esActivo(a)).sort((a,b)=> (a.hora_objetivo||'').localeCompare(b.hora_objetivo||'') || (+a.orden||0)-(+b.orden||0));
   const wrap = document.getElementById('hoyLista');
   if(activas.length===0){ wrap.innerHTML = '<div class="empty">No hay actividades activas. Se administran en la hoja «Actividades» del Sheet (columna activo = Sí).</div>'; renderNoOlvidar([]); return; }
   const idActual = idActividadActual(activas);
@@ -1537,8 +1793,7 @@ function renderHoy(){
     const abierto = BLOQ_ABIERTOS.has(nombre) || (!BLOQ_CERRADOS.has(nombre) && !completo && nombre===bloqueActual);
     const verDesc = BLOQ_DESC.has(nombre);
     const desc = verDesc ? `<div class="bloque-desc">${items.map(a=>`<div class="d-item"><b>${esc(a.nombre)}</b>${a.proposito?`<div class="d-prop">${esc(a.proposito)}</div>`:''}${a.detalle?`<div class="d-det">${esc(a.detalle)}</div>`:''}</div>`).join('')}</div>` : '';
-    return `<details class="bloque${completo?' completo':''}" ${abierto?'open':''} ontoggle="alternarBloque('${esc(nombre)}', this.open)">
-      <summary><span class="b-nombre">${esc(nombre)}</span><span class="b-rango">${esc(rango)}</span><span class="b-avance">${hechas}/${items.length}</span></summary>
+    return `<details class="bloque${completo?' completo':''}" ${abierto?'open':''} ><summary onclick="alternarBloque('${esc(nombre)}', !this.parentNode.open)"><span class="b-nombre">${esc(nombre)}</span><span class="b-rango">${esc(rango)}</span><span class="b-avance">${hechas}/${items.length}</span></summary>
       <div class="bar-track"><div class="bar-fill" style="width:${Math.round(100*hechas/items.length)}%"></div></div>
       <button class="btn secondary small b-desc-btn" onclick="alternarDescBloque('${esc(nombre)}')">${verDesc?'Ocultar descripciones':'Ver descripciones del bloque'}</button>
       ${desc}
@@ -1546,13 +1801,27 @@ function renderHoy(){
     </details>`;
   }).join('');
 }
+let hoyPendiente = false;
+function renderHoyDiferido(){
+  if(hoyPendiente) return; hoyPendiente = true;
+  setTimeout(function esperar(){
+    const ae = document.activeElement;
+    if(ae && ae.matches && ae.matches('#hoyLista input, #hoyLista textarea, #hoyLista select')){ ae.addEventListener('blur', ()=>setTimeout(esperar, 120), {once:true}); return; }
+    hoyPendiente = false; renderHoy();
+  }, 140);
+}
 window.guardarActividadHoy = function(actividadId){
   const a = ACTIVIDADES.find(x=>x.id===actividadId);
   const el = document.getElementById('hoy_'+actividadId);
   if(!a || !el) return;
   const hoy = getHoy();
   let valor;
-  if(a.tipo==='numerico'){ if(el.value==='') return; valor = el.value; }
+  if(a.tipo==='numerico'){
+    if(el.value==='') return;
+    const n = Number(String(el.value).replace(',','.'));
+    if(!isFinite(n) || n < 0){ const e0 = registroDeHoy(actividadId); el.value = e0 ? e0.valor : ''; avisar('Escribe un número válido (0 o más).'); return; }
+    valor = String(Math.min(n, 100000));
+  }
   else { valor = el.checked ? 'Sí' : 'No'; }
   const existente = registroDeHoy(actividadId);
   if(existente){
@@ -1565,11 +1834,11 @@ window.guardarActividadHoy = function(actividadId){
     saveLocalCache();
     encolarOperacion({type:'create', collection:'registros', record:rec, ts:Date.now()});
   }
-  renderHoy(); // solo refresca esta lista para actualizar el resaltado "cumplida", sin tocar las demás pestañas
+  renderHoyDiferido(); // refresca el resaltado «cumplida» sin quitarle el foco a quien está escribiendo
 };
 document.getElementById('btnGuardarHoy').addEventListener('click', ()=>{
   const hoy = getHoy();
-  const activas = ACTIVIDADES.filter(a=>a.activo==='Sí' || a.activo===true);
+  const activas = ACTIVIDADES.filter(a=>esActivo(a));
   let guardadas = 0;
   activas.forEach(a=>{
     const el = document.getElementById('hoy_'+a.id);
@@ -1654,17 +1923,17 @@ function abrirEdicionGenerica(collection, id){
   if(!a) return;
   editContexto = {id, collection, original:{...a}};
   document.getElementById('editFields').innerHTML = Object.keys(a).filter(k=>k!=='id').map(k=>{
-    const val = String(a[k]??'').replace(/"/g,'&quot;');
+    const val = esc(a[k]);
     if(k==='detalle' || k==='enfoque_estoico' || k==='descripcion' || k==='texto'){
-      return `<div><label>${k}</label><textarea rows="3" data-field="${k}">${val}</textarea></div>`;
+      return `<div><label>${esc(k)}</label><textarea rows="3" data-field="${esc(k)}">${val}</textarea></div>`;
     }
     if(k==='hora_objetivo'){
-      return `<div><label>${k} (hora y minutos)</label><input type="time" data-field="${k}" value="${val}"></div>`;
+      return `<div><label>${esc(k)} (hora y minutos)</label><input type="time" data-field="${esc(k)}" value="${val}"></div>`;
     }
     if(k==='duracion_min' || ['peso','brazo','muslo','pecho','pantorrilla','cuello','cintura','meta_peso','meta_brazo','meta_muslo','meta_pecho','meta_pantorrilla','meta_cuello','meta_cintura'].includes(k)){
-      return `<div><label>${k}</label><input type="number" step="0.1" data-field="${k}" value="${val}"></div>`;
+      return `<div><label>${esc(k)}</label><input type="number" step="0.1" data-field="${esc(k)}" value="${val}"></div>`;
     }
-    return `<div><label>${k}</label><input type="text" data-field="${k}" value="${val}"></div>`;
+    return `<div><label>${esc(k)}</label><input type="text" data-field="${esc(k)}" value="${val}"></div>`;
   }).join('');
   document.getElementById('editOverlay').style.display='flex';
 }
@@ -1998,7 +2267,7 @@ function getFechaLargaEs(){
 }
 function renderPrompts(){
   const wrap = document.getElementById('promptsWrap');
-  const activos = PROMPTS.filter(p=>p.activo==='Sí' || p.activo===true).sort((a,b)=>(+a.orden||0)-(+b.orden||0));
+  const activos = PROMPTS.filter(p=>esActivo(p)).sort((a,b)=>(+a.orden||0)-(+b.orden||0));
   if(activos.length===0){ wrap.innerHTML = '<div class="empty">Sin prompts todavía.</div>'; return; }
   wrap.innerHTML = activos.map(p=>`
     <div style="border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:10px; background:var(--panel-2);">
@@ -2050,7 +2319,7 @@ function renderRespuestas(){
   wrap.innerHTML = `<table><thead><tr><th>Fecha</th><th>Prompt</th><th>IA</th><th>Respuesta</th></tr></thead><tbody>
     ${list.map(r=>{
       const p = PROMPTS.find(x=>x.id===r.prompt_id);
-      return `<tr><td>${esc(r.fecha||'—')}</td><td>${p?p.nombre:r.prompt_id}</td><td>${esc(r.ia_usada||'—')}</td>
+      return `<tr><td>${esc(r.fecha||'—')}</td><td>${esc(p?p.nombre:r.prompt_id)}</td><td>${esc(r.ia_usada||'—')}</td>
         <td style="max-width:320px; white-space:pre-wrap;">${esc(r.respuesta||'—')}</td></tr>`;
     }).join('')}
   </tbody></table>`;
@@ -2249,7 +2518,7 @@ document.getElementById('btnAgregarIdea').addEventListener('click', ()=>{
     if(R.secondsLeft <= 0){
       if(R.mode==='nidra'){
         R.nidraIdx++;
-        if(R.nidraIdx >= NIDRA_STEPS.length){ R.running=false; clearInterval(respInterval); renderResp(); return; }
+        if(R.nidraIdx >= NIDRA_STEPS.length){ R.nidraIdx = NIDRA_STEPS.length-1; R.secondsLeft = 0; R.running=false; clearInterval(respInterval); renderResp(); return; }
         R.secondsLeft = NIDRA_STEPS[R.nidraIdx].d;
       } else {
         const set = PHASE_SETS[R.mode];
@@ -2395,13 +2664,13 @@ function renderEstres(){
   wrap.innerHTML = `<table><thead><tr><th>Fecha y hora</th><th>Antes</th><th>Disparador</th><th>Técnica</th><th>Después</th><th>Nota</th><th></th></tr></thead><tbody>
     ${list.map(e=>`<tr><td>${esc(e.fecha_hora||'—')}</td><td>${esc(e.nivel_antes??'—')}</td><td>${esc(e.disparador||'—')}</td><td>${esc(e.tecnica||'—')}</td><td>${esc(e.nivel_despues||'—')}</td><td style="max-width:200px; white-space:pre-wrap;">${esc(e.nota||'')}</td>
     <td><button class="btn secondary small" onclick="eliminarEstres('${esc(e.id)}')">✕</button></td></tr>`).join('')}
-  </tbody></table>${SERVER_V2 ? '' : '<p style="font-size:11px; color:var(--amber); margin-top:8px;">Los registros se guardan en este dispositivo. Se subirán al Sheet cuando el Apps Script esté actualizado.</p>'}`;
+  </tbody></table>${(SERVER_V2 || !ENDPOINT || !navigator.onLine) ? '' : '<p style="font-size:11px; color:var(--amber); margin-top:8px;">Los registros se guardan en este dispositivo. Se subirán al Sheet cuando el Apps Script esté actualizado.</p>'}`;
 }
 window.eliminarEstres = function(id){
   if(!confirm('¿Eliminar este registro de estrés?')) return;
   ESTRES = ESTRES.filter(x=>x.id!==id);
   saveLocalCache();
-  if(SERVER_V2) encolarOperacion({type:'delete', id, collection:'estres', ts:Date.now()});
+  encolarOperacion({type:'delete', id, collection:'estres', ts:Date.now()});
   renderAll();
 };
 document.getElementById('btnAgregarEstres').addEventListener('click', ()=>{
@@ -2567,14 +2836,14 @@ const REC_CATALOGO = [
    }},
   {id:'familia', titulo:'Mejor cada día', peso:2,
    texto:'Un mejor esposo, un mejor padre, un mejor hijo, un mejor hermano y un mejor amigo. Ya lo eres; sé aún mejor. Elige hoy una acción concreta: una llamada, un mensaje, diez minutos de atención completa.'},
-  {id:'bitacora', titulo:'Bitácora de la mañana', fijo:'05:10',
+  {id:'bitacora', titulo:'Bitácora de la mañana', fijo:'05:02',
    texto:'Antes de levantarte, anota los sueños que recuerdes y cómo amaneciste: energía de 1 a 10, a qué hora te dormiste y si te despertaron pensamientos. Se olvidan en minutos. Pestaña Sueño y energía.'},
   {id:'cierre', titulo:'Cierre del día', fijo:'21:15',
    texto:'Vacía la cabeza: escribe lo pendiente de mañana y lo que te preocupa (Pendientes o Ideas) y di «ya está anotado, mañana lo resuelvo». Luz tenue, sin pantallas brillantes, y a dormir a las 22:00.'}
 ];
 /* ---------- v15: aviso único de hábitos, dirigido desde el Sheet (Actividades.recordar = Sí) ---------- */
 function habitosFilas(){
-  return ACTIVIDADES.filter(a=>/^s/i.test(String(a.recordar==null?'':a.recordar).trim()) && (a.activo==='Sí' || a.activo===true))
+  return ACTIVIDADES.filter(a=>/^s/i.test(String(a.recordar==null?'':a.recordar).trim()) && (esActivo(a)))
     .sort((x,y)=>(x.hora_objetivo||'99:99').localeCompare(y.hora_objetivo||'99:99') || (+x.orden||0)-(+y.orden||0));
 }
 function habitosHora(){
@@ -2589,7 +2858,7 @@ function habitosTexto(){
 function recCatalogoVisible(){ return REC_CATALOGO.filter(i=>!(i.dinamico && !i.fijo)).concat(avisosFilas().map(avisoItem)); }
 /* v16: avisos individuales dirigidos desde el Sheet: Actividades.recordar = «Aviso» → un aviso propio a la hora_objetivo de esa fila. */
 function avisosFilas(){
-  return ACTIVIDADES.filter(a=>/^a/i.test(String(a.recordar==null?'':a.recordar).trim()) && (a.activo==='Sí' || a.activo===true) && horaAMin(a.hora_objetivo)!==null)
+  return ACTIVIDADES.filter(a=>/^a/i.test(String(a.recordar==null?'':a.recordar).trim()) && (esActivo(a)) && horaAMin(a.hora_objetivo)!==null)
     .sort((x,y)=>String(x.hora_objetivo).localeCompare(String(y.hora_objetivo)) || (+x.orden||0)-(+y.orden||0));
 }
 function avisoItem(a){
@@ -3234,7 +3503,7 @@ document.getElementById('cm_hora').value = getHoraActualEcuador();
 cargarBienestarEnFormulario(getHoy());
 
 /* ============ DIAGNÓSTICO MODO SIN CONEXIÓN ============ */
-const APP_VERSION = 'v18';
+const APP_VERSION = 'v21';
 async function diagnosticoOffline(){
   const L = [];
   const ok = (t)=>L.push({ok:true, t}), mal = (t)=>L.push({ok:false, t});
@@ -3289,7 +3558,7 @@ document.getElementById('btnDiagOffline').addEventListener('click', async ()=>{
 document.getElementById('appVersionLbl').textContent = APP_VERSION;
 { const fv = document.getElementById('footerVersion'); if(fv) fv.textContent = 'Valkron ' + APP_VERSION; }
 
-/* ============ DE GAMBITO (v18): releer al volver, almacenamiento persistente, compartir desde Android ============ */
+/* ============ v18: releer al volver, almacenamiento persistente, compartir desde Android ============ */
 let ultimaRelectura = 0;
 function releerAlVolver(){
   if(document.hidden || !ENDPOINT || Date.now()-ultimaRelectura < 15000) return;
@@ -3319,20 +3588,68 @@ compartidoAIdea();
 
 /* ============ CONFIG / RESET ============ */
 document.getElementById('btnResetLocal').addEventListener('click', async ()=>{
-  if(!confirm('Esto borra TODA la copia local de este dispositivo (todas las colecciones) y trae de nuevo todo desde el Sheet. ¿Continuar?')) return;
+  let extra = '';
+  if(OUTBOX.length>0) extra += '\n\nATENCIÓN: hay '+OUTBOX.length+' cambio(s) que aún NO se enviaron al Sheet; se perderán.';
+  if(!ENDPOINT) extra += '\n\nATENCIÓN: no hay Sheet conectado, así que este teléfono es el ÚNICO lugar donde están tus datos. Exporta una copia antes (Config → Copia de seguridad).';
+  if(!confirm('Esto borra TODA la copia local de este dispositivo (todas las colecciones) y trae de nuevo todo desde el Sheet. ¿Continuar?'+extra)) return;
+  if((OUTBOX.length>0 || !ENDPOINT) && !confirm('¿Seguro? Esto no se puede deshacer.')) return;
   ACTIVIDADES = []; REGISTROS = []; FAMILIA = []; RACHAS = []; SALUD = []; SALUD_METAS = [];
   RUTINA = []; RUTINA_METAS = []; PROMPTS = []; PROMPTS_RESPUESTAS = []; REGISTRO_TRABAJO = [];
   PENDIENTES = []; IDEAS = []; ORATORIA = []; REFERENCIA_R = []; ECONOMIA = []; ESTRES = []; BIENESTAR = []; SUENOS = []; COMIDAS = []; OUTBOX = [];
   [LOCAL_ACT_KEY, LOCAL_REG_KEY, LOCAL_FAM_KEY, LOCAL_RACHAS_KEY, LOCAL_SALUD_KEY, LOCAL_METAS_KEY,
    LOCAL_RUTINA_KEY, LOCAL_RMETAS_KEY, LOCAL_PROMPTS_KEY, LOCAL_PRESP_KEY, LOCAL_TRABAJO_KEY,
    LOCAL_PEND_KEY, LOCAL_IDEAS_KEY, LOCAL_ORATORIA_KEY, LOCAL_REFR_KEY, LOCAL_ECON_KEY, LOCAL_ESTRES_KEY, LOCAL_BIEN_KEY, LOCAL_SUENOS_KEY, LOCAL_COMIDAS_KEY, OUTBOX_KEY].forEach(k=>localStorage.removeItem(k));
+  ACTIVIDADES = ACTIVIDADES_SEMILLA.map(a=>Object.assign({}, a)); USANDO_SEMILLA = true;   // nunca queda la app vacía, aunque no haya señal
   await syncWithCloud();
   renderAll();
   alert('Caché local borrada por completo. Estado actual traído desde el Sheet.\n\nEndpoint activo: '+(ENDPOINT||'(ninguno configurado)'));
 });
 
+
+/* ============ COPIA DE SEGURIDAD (v21) ============ */
+const RESPALDO_PREFIJOS = ['jamr_', 'valkron_'];
+function respaldoClaves(){ const r = []; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(k && RESPALDO_PREFIJOS.some(p=>k.indexOf(p)===0) && k !== TOKEN_KEY) r.push(k); } return r; }
+function exportarRespaldo(){
+  const o = {app:'valkron', version:APP_VERSION, fecha:new Date().toISOString(), datos:{}};
+  respaldoClaves().forEach(k=>{ o.datos[k] = localStorage.getItem(k); });
+  const blob = new Blob([JSON.stringify(o)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'valkron_respaldo_' + getHoy().replace(/-/g,'') + '.json'; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  avisar('Copia exportada: ' + respaldoClaves().length + ' conjuntos de datos.');
+}
+function importarRespaldo(txt){
+  let o; try{ o = JSON.parse(txt); }catch(e){ avisar('El archivo no es una copia válida.'); return false; }
+  if(!o || o.app !== 'valkron' || !o.datos || typeof o.datos !== 'object'){ avisar('El archivo no es una copia de Valkron.'); return false; }
+  const claves = Object.keys(o.datos).filter(k=>RESPALDO_PREFIJOS.some(p=>k.indexOf(p)===0) && k !== TOKEN_KEY && typeof o.datos[k] === 'string');
+  if(!claves.length){ avisar('La copia está vacía.'); return false; }
+  if(!confirm('Esto REEMPLAZA los datos de este teléfono por los de la copia (' + (o.fecha||'').slice(0,10) + ', ' + claves.length + ' conjuntos). ¿Continuar?')) return false;
+  respaldoClaves().forEach(k=>localStorage.removeItem(k));
+  claves.forEach(k=>{ try{ localStorage.setItem(k, o.datos[k]); }catch(e){} });
+  avisar('Copia importada. Recargando…'); setTimeout(()=>location.reload(), 600); return true;
+}
+function renderRespaldoInfo(){
+  const uso = document.getElementById('respaldoUso'), sv = document.getElementById('servidorInfo'); if(!uso || !sv) return;
+  let n = 0; try{ for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); n += (k.length + (localStorage.getItem(k)||'').length) * 2; } }catch(e){}
+  uso.textContent = 'Datos de Valkron en este teléfono: ' + (n/1024/1024).toFixed(2) + ' MB (el navegador permite unos 5 MB).';
+  sv.textContent = ENDPOINT ? ('Sheet conectado: ' + ENDPOINT.replace(/^(https:\/\/script\.google\.com\/macros\/s\/)(.{6}).*(\/exec)$/, '$1$2…$3') + (TOKEN ? ' · con token' : ' · sin token')) : 'Sin Sheet conectado (modo local).';
+  const d = document.getElementById('btnDesconectar'); if(d) d.style.display = ENDPOINT ? 'inline-block' : 'none';
+}
+document.getElementById('btnExportar').addEventListener('click', exportarRespaldo);
+document.getElementById('btnImportar').addEventListener('click', ()=>document.getElementById('fileImportar').click());
+document.getElementById('fileImportar').addEventListener('change', (e)=>{
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  const fr = new FileReader(); fr.onload = ()=>{ importarRespaldo(String(fr.result||'')); e.target.value = ''; }; fr.readAsText(f);
+});
+document.getElementById('btnDesconectar').addEventListener('click', ()=>{
+  if(!confirm('Esto desconecta el Sheet de este teléfono (la app seguirá funcionando en modo local). Los cambios sin enviar (' + OUTBOX.length + ') se conservan. ¿Continuar?')) return;
+  ENDPOINT = ''; TOKEN = ''; try{ localStorage.removeItem(ENDPOINT_KEY); localStorage.removeItem(TOKEN_KEY); }catch(e){} lastSyncError = '';
+  renderAll(); renderRespaldoInfo(); avisar('Sheet desconectado.');
+});
+
 /* ============ RENDER ALL / INIT ============ */
 function renderAll(){
+  try{ renderRespaldoInfo(); }catch(e){}
   [renderStatus, renderHoy, renderCentroMando, renderBienestar, renderSuenos, renderComidas, renderHoyRecordatorios, renderRecordatorios, renderFamilia, renderRachas, renderSalud, renderRutina, renderMetasRutina, renderPrompts, renderRespuestas, renderTrabajo, renderMantras, renderPendientes, renderIdeas, renderOratoria, renderReferenciaR, renderEconomia, renderEstres].forEach(f=>{
     try{ f(); }catch(e){ console.error('[render] '+f.name, e); }
   });
@@ -3351,11 +3668,23 @@ async function loadAll(){
   document.getElementById('no_fecha').value = getHoy();
   renderAll();
   revisarRecordatorios();
-  ensureEndpoint();
+  /* v20: ya no se abre un cuadro bloqueante al arrancar; el aviso «Modo local» invita a conectar el Sheet. */
   try{ await syncWithCloud(); }catch(e){ console.error('[arranque] sync', e); }
   renderAll();
   revisarRecordatorios();
 }
+/* ============ CAMBIO DE DÍA con la app abierta (v21) ============ */
+let FECHA_VISTA = getHoy();
+function cambioDeDia(){
+  const hoy = getHoy(); if(hoy === FECHA_VISTA) return;
+  ['nf_fecha','ns_fecha','npr_fecha','no_fecha','bw_fecha','cm_fecha'].forEach(id=>{ const e = document.getElementById(id); if(e && (!e.value || e.value === FECHA_VISTA)) e.value = hoy; });
+  FECHA_VISTA = hoy;
+  try{ renderAll(); }catch(e){ console.error('[cambio de día]', e); }
+  try{ if(typeof cargarBienestarEnFormulario === 'function') cargarBienestarEnFormulario(hoy); }catch(e){}
+}
+setInterval(cambioDeDia, 30000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) cambioDeDia(); });
+window.addEventListener('focus', cambioDeDia);
 loadAll();
 </script>
 </body>
